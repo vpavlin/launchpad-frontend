@@ -41,7 +41,7 @@
     "validate-webpack:prod": "webpack-validator webpack.config.js --env.prod",
     "webdriver-start": "./node_modules/protractor/bin/webdriver-manager update && ./node_modules/protractor/bin/webdriver-manager start",
     "watch:test": "npm run test:unit -- --auto-watch --no-single-run",
-    "install": "npm run build:prod"
+    "install": "npm install && npm run validate && npm run build:prod"
   },
   "dependencies": {
     "@angular/common": "2.1.1",
