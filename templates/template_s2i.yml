@@ -116,7 +116,6 @@ objects:
         from:
           kind: ImageStreamTag
           name: front-generator:latest
-          namespace: default
       type: ImageChange
   status: {}
 - apiVersion: v1
