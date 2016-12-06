@@ -86,9 +86,6 @@ objects:
       type: Rolling
     template:
       metadata:
-        annotations:
-          openshift.io/container.front-generator.image.entrypoint: '["npm","start"]'
-          openshift.io/generated-by: OpenShiftNewApp
         labels:
           app: front-generator
           deploymentconfig: front-generator
