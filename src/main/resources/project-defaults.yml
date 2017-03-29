@@ -1,0 +1,14 @@
+swarm:
+#   http:
+#      port: 8088
+   topology:
+      web-app:
+         proxied-service-mappings:
+            backend: /backend
+            missioncontrol: /missioncontrol
+               
+#   undertow:
+#      handler-configuration:
+#         reverse-proxies:
+#            backend:
+               
