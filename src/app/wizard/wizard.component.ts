@@ -2,7 +2,7 @@ import { Component, ViewChild, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { NgForm } from '@angular/forms';
 import { ForgeService } from '../shared/forge.service'
-import { Gui, Input, Message, Result } from '../shared/model';
+import { History, Gui, Input, Message, Result } from '../shared/model';
 
 import 'rxjs/add/operator/debounceTime';
 import * as jsonpatch from 'fast-json-patch';
@@ -31,8 +31,7 @@ export class FormComponent implements OnInit {
   @ViewChild('wizard') form: NgForm;
   command: string;
   isValidating: boolean;
-  history: Gui[] = [];
-  currentGui: Gui = new Gui();
+  history: History = new History();
 
   constructor(private route: ActivatedRoute,
     private router: Router,
@@ -45,39 +44,38 @@ export class FormComponent implements OnInit {
       this.command = params['command'];
       let stepIndex = +params['step'];
       if (params['step'] == 'end') {
-        let steps = this.currentGui.state.steps || [];
-        this.history.concat(this.currentGui);
-        this.currentGui = new Gui();
-        this.currentGui.stepIndex = steps.length;
-        this.currentGui.inputs = [];
-        this.currentGui.results = [];
+        let currentGui = new Gui();
+        currentGui.inputs = [];
+        currentGui.results = [];
+        this.history.add(currentGui);
         return;
       }
 
-      if (this.history[stepIndex]) {
-          this.updateGui(this.history[stepIndex], stepIndex);
-      } else {
+      if (!this.history.get(stepIndex)) {
         if (stepIndex == 0) {
           this.forgeService.commandInfo(this.command).then((gui) => {
-            this.updateGui(gui, stepIndex);
+            this.history.add(gui);
           }).catch(error => this.currentGui.messages.push(new Message(error)));
         } else {
-          this.forgeService.nextStep(this.command, this.history, this.currentGui).then(gui => {
+          this.forgeService.nextStep(this.command, this.history).then(gui => {
             if (gui.messages && gui.messages.length > 0) {
               this.router.navigate(["../" + --stepIndex], { relativeTo: this.route });
             }
-            this.updateGui(gui, stepIndex);
+            this.history.add(gui);
           }).catch(error => this.currentGui.messages.push(new Message(error)));
         }
       }
     });
   }
 
+  get currentGui(): Gui {
+    return this.history.currentGui();
+  }
+
   validate(form: NgForm): Promise<Gui> {
     if (form.valid) {
-      this.history.splice(this.currentGui.stepIndex, this.history.length);
       this.isValidating = true;
-      return this.forgeService.validate(this.command, this.history, this.currentGui).then(gui =>
+      return this.forgeService.validate(this.command, this.history).then(gui =>
       {
         var diff = jsonpatch.compare(this.currentGui, gui);
         var stepIndex = this.currentGui.stepIndex;
@@ -102,22 +100,16 @@ export class FormComponent implements OnInit {
     return result;
   }
 
-  private updateGui(gui: Gui, stepIndex: number) {
-    this.history[stepIndex] = gui;
-    this.currentGui = gui;
-    this.currentGui.stepIndex = stepIndex;
-  }
-
   next() {
     this.gotoStep(++this.currentGui.stepIndex);
   }
 
   gotoStep(step: number) {
-    this.currentGui.stepIndex = step;
     this.router.navigate(["../" + step], { relativeTo: this.route });
   }
 
   previous() {
+    this.history.back();
     this.gotoStep(--this.currentGui.stepIndex);
   }
 

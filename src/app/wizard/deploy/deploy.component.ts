@@ -1,15 +1,15 @@
 import { Component, Input } from '@angular/core';
 
-import { Gui } from '../../shared/model';
+import { History } from '../../shared/model';
 import { ForgeService } from "../../shared/forge.service";
-import {KeycloakService} from "../../shared/keycloak.service";
+import { KeycloakService } from "../../shared/keycloak.service";
 
 @Component({
   selector: 'deploy',
   templateUrl: './deploy.component.html'
 })
 export class DeployComponent {
-  @Input() submittedGuis: Gui[];
+  @Input() submittedGuis: History;
   @Input() command: string;
   consoleUrl: string;
   statusList: Status[] = [
